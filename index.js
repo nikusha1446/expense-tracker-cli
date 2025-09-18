@@ -167,4 +167,59 @@ program
     console.log(`${summaryLabel}: $${total.toFixed(2)}`);
   });
 
+program
+  .command('update')
+  .description('Update expense')
+  .requiredOption('--id <id>', 'Expense id to update')
+  .option('--description <description>', 'Description to update')
+  .option('--amount <amount>', 'Amount to update')
+  .action((options) => {
+    const expenseId = parseInt(options.id);
+
+    if (isNaN(expenseId)) {
+      console.log('Error: Invalid expense ID');
+      process.exit(1);
+    }
+
+    const expenses = loadExpenses();
+    const expenseIndex = expenses.findIndex(
+      (expense) => expense.id === expenseId
+    );
+
+    if (expenseIndex === -1) {
+      console.log(`Error: Expense with ID ${expenseId} not found`);
+      process.exit(1);
+    }
+
+    if (!options.description && !options.amount) {
+      console.log(
+        'Error: Please provide at least --description or --amount to update'
+      );
+      process.exit(1);
+    }
+
+    if (options.description) {
+      expenses[expenseIndex].description = options.description.trim();
+    }
+
+    if (options.amount) {
+      const newAmount = parseFloat(options.amount);
+
+      if (isNaN(newAmount)) {
+        console.log('Error: Amount must be a valid number');
+        process.exit(1);
+      }
+
+      if (newAmount <= 0) {
+        console.log('Error: Amount must be greater than 0');
+        process.exit(1);
+      }
+
+      expenses[expenseIndex].amount = newAmount;
+    }
+
+    saveExpense(expenses);
+    console.log(`Expense updated successfully (ID: ${expenseId})`);
+  });
+
 program.parse();
