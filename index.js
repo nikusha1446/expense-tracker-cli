@@ -46,6 +46,24 @@ function formatDate(dateStr) {
   return date.toISOString().split('T')[0];
 }
 
+function getMonthName(monthNumber) {
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  return months[monthNumber - 1];
+}
+
 program
   .command('add')
   .description('Add an Expense')
@@ -100,6 +118,53 @@ program
 
       console.log(`${id}  ${date} ${description} ${amount}`);
     });
+  });
+
+program
+  .command('summary')
+  .description('Show summary of expenses')
+  .option('--month <month>', 'Show summary for specific month (1-12)')
+  .action((options) => {
+    const expenses = loadExpenses();
+
+    if (expenses.length === 0) {
+      return console.log('No expenses found');
+    }
+
+    let filteredExpenses = expenses;
+    let summaryLabel = 'Total expenses';
+
+    if (options.month) {
+      const month = parseInt(options.month);
+
+      if (isNaN(month) || month < 1 || month > 12) {
+        console.log('Error: Month must be between 1 and 12');
+        process.exit(1);
+      }
+
+      const currentYear = new Date().getFullYear();
+
+      filteredExpenses = expenses.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        return (
+          expenseDate.getMonth() + 1 === month &&
+          expenseDate.getFullYear() === currentYear
+        );
+      });
+
+      summaryLabel = `Total expenses for ${getMonthName(month)}`;
+
+      if (filteredExpenses.length === 0) {
+        return console.log(`No expenses found for ${getMonthName(month)}`);
+      }
+    }
+
+    const total = filteredExpenses.reduce(
+      (sum, expense) => sum + expense.amount,
+      0
+    );
+
+    console.log(`${summaryLabel}: $${total.toFixed(2)}`);
   });
 
 program.parse();
