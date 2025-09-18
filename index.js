@@ -41,6 +41,11 @@ function generateId(expenses) {
   return maxId + 1;
 }
 
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toISOString().split('T')[0];
+}
+
 program
   .command('add')
   .description('Add an Expense')
@@ -72,6 +77,29 @@ program
     expenses.push(newExpense);
     saveExpense(expenses);
     console.log(`Expense added successfully (ID: ${newExpense.id})`);
+  });
+
+program
+  .command('list')
+  .description('List all expenses')
+  .action(() => {
+    const expenses = loadExpenses();
+
+    if (expenses.length === 0) {
+      return console.log('No expenses found');
+    }
+
+    console.log('ID  Date       Description              Amount');
+    console.log('--  ---------- ----------------------- --------');
+
+    expenses.forEach((expense) => {
+      const id = expense.id.toString().padEnd(2);
+      const date = formatDate(expense.date).padEnd(10);
+      const description = expense.description.padEnd(23);
+      const amount = expense.amount.toFixed(2).padStart(8);
+
+      console.log(`${id}  ${date} ${description} ${amount}`);
+    });
   });
 
 program.parse();
