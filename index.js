@@ -222,4 +222,31 @@ program
     console.log(`Expense updated successfully (ID: ${expenseId})`);
   });
 
+program
+  .command('delete')
+  .description('Delete expense')
+  .requiredOption('--id <id>', 'Expense id to delete')
+  .action((options) => {
+    const expenseId = parseInt(options.id);
+
+    if (isNaN(expenseId)) {
+      console.log('Error: Invalid expense ID');
+      process.exit(1);
+    }
+
+    const expenses = loadExpenses();
+    const expenseIndex = expenses.findIndex(
+      (expense) => expense.id === expenseId
+    );
+
+    if (expenseIndex === -1) {
+      console.log(`Error: Expense with ID ${expenseId} not found`);
+      process.exit(1);
+    }
+
+    expenses.splice(expenseIndex, 1);
+    saveExpense(expenses);
+    console.log('Expense deleted successfully');
+  });
+
 program.parse();
